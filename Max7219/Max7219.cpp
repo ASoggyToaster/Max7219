@@ -3,9 +3,10 @@
 ////////////////////////////////////////////////////////////////
 // library settings (instance variables)
 ////////////////////////////////////////////////////////////////
-static unsigned int _effect = 0;
-static unsigned int _characterDelay = 250;
-static unsigned int _completionDelay = 500;
+static volatile unsigned int _effect = 0;
+static volatile unsigned char _brightness = 0x3;
+static volatile unsigned int _characterDelay = 250;
+static volatile unsigned int _completionDelay = 500;
 
 // GPIO Definitions 
 static int _pinCLK = 10;
@@ -139,6 +140,20 @@ static void Write_Max7219(unsigned char address,unsigned char character) {
   digitalWrite(_pinCS, HIGH);
 }
 
+static void WriteString_Char_Max7219(const char * string) {
+  size_t len = (strlen(string) + 1);
+
+  for (int i = 0; i < len; i++) {
+    for (int j = 1; j<9; j++) {
+      Write_Max7219(j, font[decodeCharacter(string[i])][j-1]);
+    }    
+
+    delay(_characterDelay);
+  }
+
+  delay(_completionDelay);
+}
+
 static void WriteString_Animated_Max7219(const char * string) {
   size_t len = (strlen(string) + 1);
 
@@ -168,22 +183,6 @@ static void WriteString_Animated_Max7219(const char * string) {
   delay(_completionDelay);
 }
 
-static void WriteString_Char_Max7219(const char * string) {
-  size_t len = (strlen(string) + 1);
-
-  for (int i = 0; i < len; i++) {
-    for (int j = 1; j<9; j++) {
-      Write_Max7219(j, font[decodeCharacter(string[i])][j-1]);
-    }    
-
-    delay(_characterDelay);
-  }
-
-  delay(_completionDelay);
-}
-
-
-
 namespace Max7219 {
     void WriteString(const char * string) {
         switch (_effect) {
@@ -200,19 +199,37 @@ namespace Max7219 {
     }
 
     void SetBrightness(unsigned char brightness) {
-        Write_Max7219(0x0a, brightness);
+      ::_brightness = brightness;
+
+      Write_Max7219(0x0a, ::_brightness);
+    }
+
+    unsigned char GetBrightness() {
+      return ::_brightness;
     }
 
     void SetEffect(unsigned int effect) {
         ::_effect = effect;
     }
 
+    unsigned int GetEffect() {
+      return ::_effect;
+    }
+
     void SetCharacterDelay(unsigned int characterDelay) {
-        ::_characterDelay = characterDelay;
+      ::_characterDelay = characterDelay;
+    }
+
+    unsigned int GetCharacterDelay() {
+      return ::_characterDelay;
     }
 
     void SetCompletionDelay(unsigned int completionDelay) {
-        ::_completionDelay = completionDelay;
+      ::_completionDelay = completionDelay;
+    }
+
+    unsigned int GetCompletionDelay() {
+      return ::_completionDelay;
     }
 
     void Init(unsigned int pinDIN, unsigned int pinCS, unsigned int pinCLK) {
@@ -237,5 +254,7 @@ namespace Max7219 {
 
         //test display：1；EOT，display：0
         Write_Max7219(0x0f, 0x00);
+
+        Max7219::SetBrightness(::_brightness);
     }
 }
