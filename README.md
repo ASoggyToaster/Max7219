@@ -4,7 +4,7 @@ app.ino Application that demonstrates the use of the Max7219 library. Receives a
 
 Max7219/ library I wrote for 8x8 7219 LED matrix. Allows for different ways to display text (scrolling marquee, wipe (per character), flash character). 
 
-=============
+
 Instructions
 =============
 
@@ -12,13 +12,13 @@ Copy Max7219/ into Arduino/libraries
 
 Build and upload sketch via arduino IDE. 
 
-==============
+
 Notes
 ==============
 
 Was tested with the following kit available from amazon: https://www.amazon.com/EL-KIT-008-Project-Complete-Ultimate-TUTORIAL/dp/B01EWNUUUA/
 
-============
+
 Further Fun
 ============
 
