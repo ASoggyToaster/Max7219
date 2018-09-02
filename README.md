@@ -10,7 +10,7 @@ Instructions
 
 Copy Max7219/ into Arduino/libraries
 
-Build and upload sketch via arduino IDE. 
+Build and upload sketch (app.ino) via arduino IDE. 
 
 
 Notes
