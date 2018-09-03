@@ -15,8 +15,10 @@ namespace App {
   }
 
   void ReadMessage() {
-    char buf[256];
+    char buf[512];
     unsigned int i = 0;
+
+    delay(25);
 
     while (Serial.available() && (i < (sizeof(buf) - 1))) {
       char in = (char)Serial.read();
@@ -50,7 +52,6 @@ void setup() {
 
 void loop() {
   if (Serial.available()) {
-    delay(25);
     App::ReadMessage();
   }
 
