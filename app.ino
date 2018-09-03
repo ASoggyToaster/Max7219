@@ -4,9 +4,9 @@
 // App Fns --- 
 ////////////////////////////////////////////////////////////////
 namespace App {
-  static const char * _message = NULL;
+  static char * _message = NULL;
 
-  void SetMessage(const char * message) {
+  void SetMessage(char * message) {
     App::_message = message;
   }
 
@@ -17,6 +17,10 @@ namespace App {
   void ReadMessage() {
     char buf[512];
     unsigned int i = 0;
+
+    if (App::_message) {
+      free(App::_message);
+    }
 
     delay(25);
 
@@ -39,27 +43,30 @@ namespace App {
 ////////////////////////////////////////////////////////////////
 void setup() {
   Serial.begin(9600);
-  
+
+  App::SetMessage(strdup("Test"));
+
   Max7219::Init(8, 9, 10);
 
   Max7219::SetBrightness(4);
   Max7219::SetEffect(Max7219::Effects::StringFX_Scroll);
   Max7219::SetCharacterDelay(40);
   Max7219::SetCompletionDelay(1000);
-
-  App::SetMessage("Test");
+  Max7219::SetString(App::GetMessage());
 }
 
 void loop() {
   if (Serial.available()) {
     App::ReadMessage();
+
+    Max7219::SetString(App::GetMessage());
   }
 
+  /* 
+    Loop the string continuously (when it finishes showing the whole string, set it again)
+  */
   if (!Max7219::IsDisplayingString()) {
-
-    // write string is idempotent -- 
-    // calling won't actually have an impact unless the string is finished drawing
-    Max7219::WriteString(App::GetMessage());
+    Max7219::SetString(App::GetMessage());
   }
 
   Max7219::Update();

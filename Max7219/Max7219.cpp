@@ -18,7 +18,7 @@ static volatile unsigned int _frame = 0;
 static volatile unsigned int _totalFrames = 0;
 
 // string
-char * _string = NULL;
+static char * _string = NULL;
 
 // GPIO Definitions 
 static int _pinCLK = 10;
@@ -183,13 +183,11 @@ static void WriteChar_Max7219() {
 }
 
 namespace Max7219 {
-    void WriteString(const char * string) {
-      if (!::_writeInProgress) {
-        ::_frame = 0;
-        ::_totalFrames = (strlen(string)) * 8;
-        ::_string = strdup(string);
-        ::_writeInProgress = 1;
-      }
+    void SetString(const char * string) {
+      ::_frame = 0;
+      ::_totalFrames = strlen(string) * 8;
+      ::_string = strdup(string);
+      ::_writeInProgress = 1;
     }
 
     void Update() {

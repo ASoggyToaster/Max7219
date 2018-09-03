@@ -11,23 +11,40 @@ namespace Max7219 {// effects
         StringFX_Count,
     };
 
-    void WriteString(const char * string);
+    // Sets the string being displayed on the matrix
+    void SetString(const char * string);
 
+    // sets the display brightness
     void SetBrightness(unsigned char brightness);
+
+    // get the display brightness
     unsigned char GetBrightness();
 
+    // set the text animation (e.g., display each character, wipe/fade, scroll whole string)
     void SetEffect(unsigned int effect);
+
+    // get the current effect-- corresponds to an enum value 
     unsigned int GetEffect();
 
+    // set delay between characters
     void SetCharacterDelay(unsigned int characterDelay);
+
+    // get delay between characters
     unsigned int GetCharacterDelay();
 
+    // set delay amount for IsDisplayingString() to return false after last character has been displayed
     void SetCompletionDelay(unsigned int completionDelay);
+
+    // get ^ 
     unsigned int GetCompletionDelay();
 
+    // is the matrix currently displaying a string? 
     unsigned char IsDisplayingString();
     
+    // initialize the display (data in, chip select, clock)
     void Init(unsigned int pinDIN, unsigned int pinCS, unsigned int pinCLK);
+
+    // update (tick) the display
     void Update();
 }
 
