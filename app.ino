@@ -42,16 +42,32 @@ void setup() {
 
   Max7219::SetBrightness(4);
   Max7219::SetEffect(Max7219::Effects::StringFX_Scroll);
-  Max7219::SetCharacterDelay(150);
-  Max7219::SetCompletionDelay(500);
+  Max7219::SetCharacterDelay(40);
+  Max7219::SetCompletionDelay(1000);
 
-  App::SetMessage("Thank you for the monster bubs I love you");
+  App::SetMessage("Test");
 }
 
 void loop() {
   if (Serial.available()) {
+    delay(25);
     App::ReadMessage();
   }
 
-  Max7219::WriteString(App::GetMessage());
+  if (!Max7219::IsDisplayingString()) {
+
+    // write string is idempotent -- 
+    // calling won't actually have an impact unless the string is finished drawing
+    Max7219::WriteString(App::GetMessage());
+  }
+
+  Max7219::Update();
+}
+
+void brightnessRotaryISR() {
+
+}
+
+void speedRotaryISR() {
+
 }

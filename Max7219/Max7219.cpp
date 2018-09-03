@@ -8,6 +8,18 @@ static volatile unsigned char _brightness = 0x3;
 static volatile unsigned int _characterDelay = 250;
 static volatile unsigned int _completionDelay = 500;
 
+static volatile unsigned char _writeInProgress = 0;
+
+// last draw time
+static volatile unsigned int _lastDrawMs = 0;
+
+// and which frame? 
+static volatile unsigned int _frame = 0;
+static volatile unsigned int _totalFrames = 0;
+
+// string
+char * _string = NULL;
+
 // GPIO Definitions 
 static int _pinCLK = 10;
 static int _pinCS = 9;
@@ -140,62 +152,65 @@ static void Write_Max7219(unsigned char address,unsigned char character) {
   digitalWrite(_pinCS, HIGH);
 }
 
-static void WriteString_Char_Max7219(const char * string) {
-  size_t len = (strlen(string) + 1);
+static void WriteChar_Max7219() {
+  unsigned int charIndex = ::_frame / 8;
 
-  for (int i = 0; i < len; i++) {
-    for (int j = 1; j<9; j++) {
-      Write_Max7219(j, font[decodeCharacter(string[i])][j-1]);
-    }    
+  if (charIndex < strlen(::_string)) {
+    unsigned char decodedA = decodeCharacter(::_string[charIndex]);
+    unsigned char decodedB = decodeCharacter(::_string[charIndex+1]);
 
-    delay(_characterDelay);
-  }
+    switch (_effect) {
+      case Max7219::Effects::StringFX_Wipe: {
+        for (int j = 1; j<9; j++) {
+          Write_Max7219(j, blendChars(decodedA, decodedB, ::_frame % 8, j - 1));
+        } 
+      } break;
 
-  delay(_completionDelay);
-}
-
-static void WriteString_Animated_Max7219(const char * string) {
-  size_t len = (strlen(string) + 1);
-
-  for (int i = 0; i < (len - 1); i++) {
-    for (int k = 0; k<8; k++) {
-      unsigned char decodedA = decodeCharacter(string[i]);
-      unsigned char decodedB = decodeCharacter(string[i+1]); 
-
-      for (int j = 1; j<9; j++) {
-        switch (_effect) {
-          case Max7219::Effects::StringFX_Wipe:
-            Write_Max7219(j, blendChars(decodedA, decodedB, k, j - 1));
-            break;
-
-          case Max7219::Effects::StringFX_Scroll:
-            Write_Max7219(j, scrollChars(decodedA, decodedB, k, j - 1));
-            break;
+      case Max7219::Effects::StringFX_Scroll: {
+        for (int j = 1; j<9; j++) {
+          Write_Max7219(j, scrollChars(decodedA, decodedB, ::_frame % 8, j - 1));
         }
-      }
+      } break;
 
-      delay(_characterDelay/2);
+      case Max7219::Effects::StringFX_None:
+      default:
+        for (int j = 1; j < 9; j++) {
+          Write_Max7219(j, font[decodeCharacter(::_string[charIndex])][j-1]);
+        }    
+      break; 
     }
-
-    delay(_characterDelay/2);
   }
-
-  delay(_completionDelay);
 }
 
 namespace Max7219 {
     void WriteString(const char * string) {
-        switch (_effect) {
-            case Max7219::Effects::StringFX_Wipe:
-            case Max7219::Effects::StringFX_Scroll:
-            WriteString_Animated_Max7219(string);
-            break;
+      if (!::_writeInProgress) {
+        ::_frame = 0;
+        ::_totalFrames = (strlen(string)) * 8;
+        ::_string = strdup(string);
+        ::_writeInProgress = 1;
+      }
+    }
 
-            case Max7219::Effects::StringFX_None:
-            default:
-            WriteString_Char_Max7219(string);
-            break;
+    void Update() {
+      if (::_writeInProgress) {
+        unsigned int currentTime = millis(); 
+
+        if ((!::_lastDrawMs || (::_lastDrawMs + ::_characterDelay <= currentTime)) && ::_frame < ::_totalFrames) {
+          WriteChar_Max7219();
+          ::_lastDrawMs = currentTime;
+          ::_frame++; 
         }
+
+        if (::_frame >= ::_totalFrames && (::_lastDrawMs + ::_completionDelay <= currentTime)) {
+          ::_writeInProgress = 0;
+          free(::_string);
+        }
+      }
+    }
+
+    unsigned char IsDisplayingString() {
+      return ::_writeInProgress;
     }
 
     void SetBrightness(unsigned char brightness) {

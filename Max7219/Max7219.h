@@ -25,7 +25,10 @@ namespace Max7219 {// effects
     void SetCompletionDelay(unsigned int completionDelay);
     unsigned int GetCompletionDelay();
 
+    unsigned char IsDisplayingString();
+    
     void Init(unsigned int pinDIN, unsigned int pinCS, unsigned int pinCLK);
+    void Update();
 }
 
 #endif // __HAVE_MAX7219_H__
